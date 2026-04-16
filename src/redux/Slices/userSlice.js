@@ -13,10 +13,10 @@ export const otherUsers = createAsyncThunk("/user/otherUsers",async()=>{
    try {
      const res = axiosInstance.get("user/others");
      toast.promise(res,{
-        loading:"Wait | gething users are proccessing.....",
-        success:(data)=>{
-            return data?.data?.message 
-        },
+        // loading:"Wait | gething users are proccessing.....",
+        // success:(data)=>{
+        //     return data?.data?.message 
+        // },
         error:"Faild to get users"
      });
      return (await res)?.data
@@ -30,10 +30,10 @@ export const searchUser = createAsyncThunk("/user/searchUser",async(searchData)=
    try {
      const res = axiosInstance.post(`user/search?query=${searchData}`);
      toast.promise(res,{
-        loading:"Wait | search users are proccessing.....",
-        success:(data)=>{
-            return data?.data?.message 
-        },
+        // loading:"Wait | search users are proccessing.....",
+        // success:(data)=>{
+        //     return data?.data?.message 
+        // },
         error:"Faild to search users"
      });
      return (await res)?.data

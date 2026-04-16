@@ -49,10 +49,10 @@ export const getuser =createAsyncThunk("/auth/getuser",async()=>{
    try {
      const res = axiosInstance.get("user/me");
      toast.promise(res,{
-        loading:"Wait | user details get  is proccessing.....",
-        success:(data)=>{
-            return data?.data?.message
-        },
+        // loading:"Wait | user details get  is proccessing.....",
+        // success:(data)=>{
+        //     return data?.data?.message
+        // },
         error:"Faild to get user details ",
       })
       return ((await res).data);

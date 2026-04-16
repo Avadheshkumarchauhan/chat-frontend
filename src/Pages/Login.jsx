@@ -1,18 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch} from "react-redux";
 import { login } from "../redux/Slices/authSlice";
 
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { isLoggedIn } = useSelector((state) => state.auth);
-
+ 
   const [loginData, setLoginData] = useState({
     email: "",
     password: "",
   });
+  const [loginStatus,setLoginStatus] =useState(false)
   const [show, setShow] = useState(false);
   const handleShow = () => {
     setShow((show) => !show);
@@ -26,6 +26,7 @@ function Login() {
   };
   const loginHandleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!loginData.email || !loginData.password) {
       toast.error("All fields are required ");
       return;
@@ -36,16 +37,18 @@ function Login() {
     // console.log("form data : ", formdata);
 
     //const res  = await dispatch(login(formdata));
+    setLoginStatus(true);
     const res = await dispatch(login({ ...loginData }));
-    console.log("login data ", res);
+    //console.log("login data ", res);
     if (res?.payload?.success) {
       setLoginData({
         email: "",
         password: "",
       });
-
+      
       navigate("/");
     }
+    setLoginStatus(false);
   };
   return (
     <div className="w-full min-h-screen bg-slate-400  flex items-center justify-center">
@@ -87,10 +90,11 @@ function Login() {
             </span>
           </div>
           <button
+            disabled={loginStatus}
             type="submit"
             className="px-5 py-2.5 bg-[#20c7ff] rounded-2xl shadow-gray-400  shadow-lg text-[20px] w-50 mt-5 font-bold hover:shadow-inner hover:cursor-pointer"
           >
-            {isLoggedIn ? "loggedIn" : "Login"}
+            Login
           </button>
           <p className="text-xl font-semibold">
             {" "}

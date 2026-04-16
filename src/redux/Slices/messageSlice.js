@@ -28,10 +28,10 @@ export const getMessage = createAsyncThunk("/message/get",async(id)=>{
      
      const res = axiosInstance.get(`message/get/${id}`);
      toast.promise(res,{
-        loading:"Wait | message is get...",
-        success:(data)=>{
-            return data?.data?.message 
-        },
+       // loading:"Wait | message is get...",
+        // success:(data)=>{
+        //     return data?.data?.message 
+        // },
         error:"Faild to get message"
      });
      return (await res)?.data

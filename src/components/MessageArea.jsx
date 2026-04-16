@@ -5,29 +5,30 @@ import { BsEmojiSurprise } from "react-icons/bs";
 import { FaFileImage } from "react-icons/fa6";
 import { TbSend } from "react-icons/tb";
 import EmojiPicker from "emoji-picker-react";
-import {  useEffect, useId, useRef, useState } from "react";
-import { getMessage, sendMessage, setMessage } from "../redux/Slices/messageSlice";
+import { useEffect, useId, useRef, useState } from "react";
+import {
+  getMessage,
+  sendMessage,
+  setMessage,
+} from "../redux/Slices/messageSlice";
 import SenderMessage from "./SenderMessage";
 import ReceiverMessage from "./ReceiverMessage";
 import { BackUrl } from "../helper/AxiosInst";
-import {io} from "socket.io-client"
+import { io } from "socket.io-client";
 
 const MessageArea = ({ data }) => {
-
   const dispatch = useDispatch();
   const imageId = useId();
   const { message } = useSelector((state) => state?.message);
- 
+
   const authData = useSelector((state) => state?.auth?.data);
-   
- 
-  
 
   const [showPicker, setShowPicker] = useState(false);
   const [inputData, setInputData] = useState("");
   const [inputImage, setInputImage] = useState(null);
   const [backendImage, setBackendImage] = useState(null);
-  const socketRef = useRef(null)
+  const socketRef = useRef(null);
+  const [sendStatus,setSendStatus] =useState(false)
 
   const handleImage = (e) => {
     e.preventDefault();
@@ -43,40 +44,37 @@ const MessageArea = ({ data }) => {
     //     }
   };
 
-  useEffect(()=>{
-       if(!data?._id) return;
-        dispatch(getMessage(data._id))
-       
-    },[data,dispatch]
-  )
-  
+  useEffect(() => {
+    if (!data?._id) return;
+    dispatch(getMessage(data._id));
+  }, [data, dispatch]);
 
-useEffect(() => {
-  if (authData) {
-    socketRef.current = io(BackUrl, {
-      query: {
-        userId: authData?._id,
-      },
-    });
+  useEffect(() => {
+    if (authData) {
+      socketRef.current = io(BackUrl, {
+        query: {
+          userId: authData?._id,
+        },
+      });
 
-    //console.log("Socket From:", socketRef.current);
-   // socketRef.current?.on("hello",(d)=>console.log("socket data : ",d))
-    socketRef.current?.on("getOnlineUsers", (users) => {
-      //console.log("socket message:", users);
+      //console.log("Socket From:", socketRef.current);
+      // socketRef.current?.on("hello",(d)=>console.log("socket data : ",d))
+      socketRef.current?.on("getOnlineUsers", (users) => {
+        //console.log("socket message:", users);
 
-      // ✅ sirf data Redux me bhejo
-      dispatch(setOnlineUsers(users));
-    });
+        // ✅ sirf data Redux me bhejo
+        dispatch(setOnlineUsers(users));
+      });
 
-    return () => {
-      socketRef.current?.disconnect();
-    };
-  } else {
-    if (socketRef.current) {
-      socketRef.current?.disconnect();
+      return () => {
+        socketRef.current?.disconnect();
+      };
+    } else {
+      if (socketRef.current) {
+        socketRef.current?.disconnect();
+      }
     }
-  }
-}, [authData,dispatch]);
+  }, [authData, dispatch]);
 
   const emojiClick = (emojiData) => {
     setInputData((prevData) => prevData + " " + emojiData.emoji);
@@ -87,48 +85,47 @@ useEffect(() => {
 
   const onSubmitMessageHandle = async (e) => {
     e.preventDefault();
-    if(inputData.trim()==="" && !backendImage ){
+    if (inputData.trim() === "" && !backendImage) {
       return;
     }
     const formData = new FormData();
-    
+
     if (inputData) {
       formData.append("message", inputData);
     }
     if (backendImage) {
       formData.append("image", backendImage);
     }
+    setSendStatus(true)
 
-    const res = await dispatch(sendMessage([data?._id, formData]));
-    
+    const res = await dispatch(sendMessage([data?._id, formData]));    
 
     if (res?.payload?.success) {
       setInputData("");
       setInputImage("");
       setBackendImage("");
-      dispatch(setMessage([...message,res?.payload?.data]));
-      
+      setSendStatus(false)
+      dispatch(setMessage([...message, res?.payload?.data]));
     }
+    setSendStatus(false)
   };
-  useEffect(()=>{
-    // console.log("socket message1");
-    // console.log("before : ",socketRef.current);
-    
-    socketRef.current?.on("newMessage",(mess)=>{
+  useEffect(() => {
+        // console.log("before : ",socketRef.current);
 
-      // console.log("newMessage : ",mess);
+    socketRef.current?.on("newMessage", (mess) => {
+      //console.log("newMessage : ",mess);
 
-      // console.log("socket message 2 ");
       
-      
-      dispatch(setMessage([...message,mess]));
-      
-      
-
-    })
-    ///socketRef.current?.off("newMessage"); //not allow 
-
-  },[message, setMessage])
+      if(mess?.sender ===data?._id  ){
+                          
+        dispatch(setMessage([...message, mess]));
+        }
+        else{
+          dispatch(setMessage([...message]))
+        }
+    });
+    ///socketRef.current?.off("newMessage"); //not allow
+  }, [message, setMessage]);
 
   return (
     <div
@@ -140,7 +137,7 @@ useEffect(() => {
             <div className="top-5 left-5 text-gray-700 cursor-pointer hover:text-white">
               <BsArrowLeft
                 className="font-semibold text-xl w-10 h-10 "
-                onClick={ () =>  dispatch(selectUser(null))}
+                onClick={() => dispatch(selectUser(null))}
               />
             </div>
             <div className="w-15 flex justify-center items-center h-15 rounded-full text-white   overflow-hidden  shadow-gray-500 shadow-lg">
@@ -166,51 +163,84 @@ useEffect(() => {
               </div>
             )}
 
-            {message && message?.map((msg,idx) =>
-              msg.sender == authData._id ? (
-                <div key={idx}><SenderMessage image={msg?.image} message={msg?.message} /></div>
-              ) : (
-                <div key={idx}><ReceiverMessage image={msg?.image} message={msg?.message} /></div>
-              )
-            )}
+            {message &&
+              message?.map((msg, idx) =>
+                msg.sender == authData._id ? (
+                  <div key={idx}>
+                    <SenderMessage image={msg?.image} message={msg?.message} />
+                  </div>
+                ) : (
+                  <div key={idx}>
+                    <ReceiverMessage
+                      image={msg?.image}
+                      message={msg?.message}
+                    />
+                  </div>
+                )
+              )}
           </div>
           <div className=" w-full lg:w-[75%] h-25  bottom-1 flex items-center justify-center ">
-          {
-            inputImage && <img src={inputImage ||null} className="w-70 h-70 absolute bottom-25 right-5% rounded-lg z-25"  />
-          }
-          
-          
-          <form noValidate onSubmit={onSubmitMessageHandle} className="w-[95%] lg:w-[70%] h-15  bg-[#73b7e7] rounded-full shadow-lg shadow-gray-400 flex items-center gap-5 px-5"> 
-            <div onClick={()=>setShowPicker(prev=>!prev)}>
-              <BsEmojiSurprise className="w-6 h-6 text-white cursor-pointer" title="Emoji" />
-            </div>
-            <textarea  className="w-full h-15  px-2 pt-4 outline-none border-0  text-black bg-transparent placeholder-white placeholder" placeholder="Type a  message" onChange={handleInput} value={inputData}/> 
-            <div >
-              <label htmlFor={imageId}> <FaFileImage className="w-6 h-6 text-white cursor-pointer" title="File"/></label>
-              <input type="file" hidden  id={imageId} accept="image/*" onChange={handleImage} />
-            </div>
-           {!(inputData.trim()==="" && !backendImage) &&
-             <button type="submit ">
-              <TbSend className="w-6 h-6 text-white cursor-pointer " title="send"/>
-              </button>
+            {inputImage && (
+              <img
+                src={inputImage || null}
+                className="w-70 h-70 absolute bottom-25 right-5% rounded-lg z-25"
+              />
+            )}
 
-           }
-            
-           
-
-          </form>
-        </div>
+            <form
+              noValidate
+              onSubmit={onSubmitMessageHandle}
+              className="w-[95%] lg:w-[70%] h-15  bg-[#73b7e7] rounded-full shadow-lg shadow-gray-400 flex items-center gap-5 px-5"
+            >
+              <div onClick={() => setShowPicker((prev) => !prev)}>
+                <BsEmojiSurprise
+                  className="w-6 h-6 text-white cursor-pointer"
+                  title="Emoji"
+                />
+              </div>
+              <textarea
+                className="w-full h-15  px-2 pt-4 outline-none border-0  text-black bg-transparent placeholder-white placeholder"
+                placeholder="Type a  message"
+                onChange={handleInput}
+                value={inputData}
+              />
+              <div>
+                <label htmlFor={imageId}>
+                  {" "}
+                  <FaFileImage
+                    className="w-6 h-6 text-white cursor-pointer"
+                    title="File"
+                  />
+                </label>
+                <input
+                  type="file"
+                  hidden
+                  id={imageId}
+                  accept="image/*"
+                  onChange={handleImage}
+                />
+              </div>
+              {!(inputData.trim() === "" && !backendImage) && (
+                <button type="submit " disabled={sendStatus}>
+                  <TbSend
+                    className="w-6 h-6 text-white cursor-pointer "
+                    title="send"
+                  />
+                </button>
+              )}
+            </form>
+          </div>
         </div>
       )}
       {!data?.userName && (
         <div className="flex w-full h-full justify-center items-center   flex-col p-5 gap-2">
           <h1 className="text-4xl font-bold text-gray-300">Welcome to Chat</h1>
           <span className="text-orange-200 font-stretch-50%  font-semibold text-2xl">
-            {" "} select user chatting.......
+            {" "}
+            select user chatting.......
           </span>
         </div>
       )}
-     
     </div>
   );
 };

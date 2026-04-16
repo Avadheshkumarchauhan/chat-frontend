@@ -9,6 +9,7 @@ function SignUp() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [show, setShow] = useState(false);
+  const [signUpStatus,setSignUpStatus] =useState(false)
 
   const handleShow = () => {
     setShow((show) => !show);
@@ -25,6 +26,7 @@ function SignUp() {
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!data.userName || !data.email || !data.password) {
       toast.error("please fill all field are required");
       return;
@@ -48,7 +50,7 @@ function SignUp() {
     formData.append("userName", data.userName);
     formData.append("email", data.email);
     formData.append("password", data.password);
-
+    setSignUpStatus(true)
     const res = await dispatch(signUp({ ...data }));
 
     if (res?.payload?.success) {
@@ -59,6 +61,7 @@ function SignUp() {
       });
       navigate("/login");
     }
+    setSignUpStatus(false)
   };
 
   return (
@@ -110,6 +113,7 @@ function SignUp() {
             </span>
           </div>
           <button
+            disabled={signUpStatus}
             type="submit"
             className="px-5 py-2.5 bg-[#20c7ff] rounded-2xl shadow-gray-400  shadow-lg text-[20px] w-50 mt-5 font-bold hover:shadow-inner hover:cursor-pointer"
           >

@@ -10,17 +10,17 @@ function Profile() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const imageId = useId();
-  const { email, userName, image, name } = useSelector(
-    (state) => state?.auth?.data,
-  );
+  const { email, userName, image, name } = useSelector((state) => state?.auth?.data);
   const [inputdata, setInputData] = useState({
     name: name || "",
     image: null,
   });
+  const [profileStatus,setProfileStatus] =useState(false)
   const [previewImage, setPreviewImage] = useState(image || null);
 
   const handleImage = (e) => {
     e.preventDefault();
+    
     const uploadImage = e.target.files[0];
 
     setInputData({
@@ -44,6 +44,7 @@ function Profile() {
   };
   const handleSubmitData = async (e) => {
     e.preventDefault();
+    
     if (!inputdata.name || !inputdata.image) {
       toast.error("All fields are required");
       return;
@@ -51,12 +52,13 @@ function Profile() {
     const formData = new FormData();
     formData.append("name", inputdata.name);
     formData.append("image", inputdata.image);
-
+    setProfileStatus(true)
     const res = await dispatch(saveProfile(formData));
 
     if (res?.payload?.success) {
       await dispatch(getuser());
     }
+    setProfileStatus(false)
   };
   return (
     <div className=" w-full min-h-screen bg-slate-400  flex flex-col justify-center items-center gap-5 mb-0">
@@ -114,6 +116,7 @@ function Profile() {
           className="min-w-[90%] outline-none border-2 border-[#20c7ff] px-5 py-2.5 bg-white rounded-lg shadow-gray-200 shadow-lg text-gray-400 text-[19px] overflow-x-scroll"
         />
         <button
+          disabled={profileStatus}
           type="submit"
           className="px-5 py-2.5 bg-[#20c7ff] rounded-2xl shadow-gray-400  shadow-lg text-[20px] w-50 mt-5 font-bold hover:shadow-inner hover:cursor-pointer"
         >
